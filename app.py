@@ -55,50 +55,75 @@ with st.sidebar:
         st.success(f"✅ Processed {len(chunks)} chunks")
         st.info(f"📝 Total characters: {len(text)}")
 
+
 # Chat interface
-st.markdown("---")
 
 for msg in st.session_state.messages:
-    css_class = "user-msg" if msg["role"] == "user" else "bot-msg"
-    icon = "👤" if msg["role"] == "user" else "🤖"
-    st.markdown(f"""
-    <div class='chat-msg {css_class}'>
-        <strong>{icon}</strong> {msg["content"]}
-    </div>""", unsafe_allow_html=True)
+    with st.chat_message(msg["role"]):
+        st.write(msg["content"])
+
 
 question = st.chat_input("Ask a question about your document...")
 
+
 if question:
+
     if not st.session_state.chunks:
         st.warning("Please upload a PDF first")
+
     else:
-        st.session_state.messages.append({"role": "user", "content": question})
-        
-        relevant = search_chunks(question, st.session_state.chunks)
+        # Show user's question immediately
+        st.session_state.messages.append({
+            "role": "user",
+            "content": question
+        })
+
+        with st.chat_message("user"):
+            st.write(question)
+
+        # Search relevant chunks
+        relevant = search_chunks(
+            question,
+            st.session_state.chunks
+        )
+
         context = "\n\n".join(relevant)
-        
-        prompt = f"""Answer based ONLY on this context:
+
+        prompt = f"""
+You are a helpful assistant.
+
+Answer the question ONLY using the provided context.
+
+If the answer is not present in the context, say:
+"I don't have that information."
+
+Context:
 {context}
 
-Question: {question}
-Answer:"""
+Question:
+{question}
 
+Answer:
+"""
 
-try:
-    for attempt in range(3):
         try:
+
             response = client.models.generate_content(
                 model="gemini-3.5-flash",
                 contents=prompt
             )
+
             answer = response.text
-            break
 
         except Exception as e:
-            if attempt < 2:
-                time.sleep(3)
-            else:
-                answer = f"API Error: {str(e)[:150]}. Please try again later."
 
-except Exception as e:
-    answer = f"API Error: {str(e)[:150]}"
+            answer = f"API Error: {str(e)[:200]}"
+
+        # Show answer immediately
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": answer
+        })
+
+        with st.chat_message("assistant"):
+            st.write(answer)
