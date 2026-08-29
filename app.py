@@ -81,15 +81,23 @@ if question:
 
 Question: {question}
 Answer:"""
-        
+import time
+
+try:
+    for attempt in range(3):
         try:
             response = client.models.generate_content(
-                model="gemini-3.5-flash",
+                model="gemini-3.6-flash",
                 contents=prompt
             )
             answer = response.text
+            break
+
         except Exception as e:
-            answer = f"API Error: {str(e)[:100]}. Please try again later."
-        
-        st.session_state.messages.append({"role": "assistant", "content": answer})
-        st.rerun()
+            if attempt < 2:
+                time.sleep(3)
+            else:
+                answer = f"API Error: {str(e)[:150]}. Please try again later."
+
+except Exception as e:
+    answer = f"API Error: {str(e)[:150]}"
