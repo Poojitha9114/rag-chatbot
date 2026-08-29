@@ -1,7 +1,6 @@
 import asyncio
 import sys
 import os
-import time
 from dotenv import load_dotenv
 load_dotenv()
 if sys.platform == "win32":
@@ -55,75 +54,42 @@ with st.sidebar:
         st.success(f"✅ Processed {len(chunks)} chunks")
         st.info(f"📝 Total characters: {len(text)}")
 
-
 # Chat interface
+st.markdown("---")
 
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.write(msg["content"])
-
+    css_class = "user-msg" if msg["role"] == "user" else "bot-msg"
+    icon = "👤" if msg["role"] == "user" else "🤖"
+    st.markdown(f"""
+    <div class='chat-msg {css_class}'>
+        <strong>{icon}</strong> {msg["content"]}
+    </div>""", unsafe_allow_html=True)
 
 question = st.chat_input("Ask a question about your document...")
 
-
 if question:
-
     if not st.session_state.chunks:
         st.warning("Please upload a PDF first")
-
     else:
-        # Show user's question immediately
-        st.session_state.messages.append({
-            "role": "user",
-            "content": question
-        })
-
-        with st.chat_message("user"):
-            st.write(question)
-
-        # Search relevant chunks
-        relevant = search_chunks(
-            question,
-            st.session_state.chunks
-        )
-
+        st.session_state.messages.append({"role": "user", "content": question})
+        
+        relevant = search_chunks(question, st.session_state.chunks)
         context = "\n\n".join(relevant)
-
-        prompt = f"""
-You are a helpful assistant.
-
-Answer the question ONLY using the provided context.
-
-If the answer is not present in the context, say:
-"I don't have that information."
-
-Context:
+        
+        prompt = f"""Answer based ONLY on this context:
 {context}
 
-Question:
-{question}
-
-Answer:
-"""
-
+Question: {question}
+Answer:"""
+        
         try:
-
             response = client.models.generate_content(
-                model="gemini-3.5-flash",
+                model="gemini-3.6-flash",
                 contents=prompt
             )
-
             answer = response.text
-
         except Exception as e:
-
-            answer = f"API Error: {str(e)[:200]}"
-
-        # Show answer immediately
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": answer
-        })
-
-        with st.chat_message("assistant"):
-            st.write(answer)
+            answer = f"API Error: {str(e)[:100]}. Please try again later."
+        
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        st.rerun()
