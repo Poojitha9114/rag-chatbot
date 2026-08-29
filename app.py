@@ -1,6 +1,7 @@
 import asyncio
 import sys
 import os
+import time
 from dotenv import load_dotenv
 load_dotenv()
 if sys.platform == "win32":
@@ -81,7 +82,7 @@ if question:
 
 Question: {question}
 Answer:"""
-import time
+
 
 try:
     for attempt in range(3):
