@@ -247,17 +247,5 @@ GitHub:
 https://github.com/Poojitha9114
 
 
-### One thing before you commit
-
-Because I don't have your exact `requirements.txt` contents here, **don't blindly keep `PyMuPDF` and `scikit-learn` in the Technologies Used section if your project doesn't actually use them**.
-
-Everything else above is appropriate for the project you've shown me.
-
-After pasting:
-
-**Commit changes → Commit directly to main → Commit changes.**
-
-Then your GitHub repository will have a proper README and your **Live Demo** link will be clickable.
-**Commit changes → Commit directly to main → Commit changes.**
 
 Then your GitHub repository will have a proper README and your **Live Demo** link will be clickable.
